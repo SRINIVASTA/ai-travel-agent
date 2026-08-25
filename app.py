@@ -139,8 +139,10 @@ with col2:
         if payload_data['booking_type'] == "IRCTC Train":
             target_url = "https://irctc.co.in"
             st.info(f"🚄 **AI Recommendation:** Target Route: **{payload_data['source_city']} ➔ {payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
-        else:
-            target_url = "https://ap.gov.in"
-            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Dashboard for slots in **{payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
+                else:
+            # Verified Official AP Government TTD Domain Target
+            target_url = "https://ttdevasthanams.ap.gov.in/home/dashboard"
+            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Dashboard for slots in {payload_data['destination_city']} scheduled for **{payload_data['travel_date']}**")
+
             
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
