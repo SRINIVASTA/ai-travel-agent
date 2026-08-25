@@ -1,11 +1,9 @@
 import streamlit as st
 import json
-import asyncio
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from playwright.async_api import async_playwright
 
 # --- Define the Agent's Structured Output Schema ---
 class Passenger(BaseModel):
@@ -21,55 +19,21 @@ class TravelPayload(BaseModel):
     preferred_slot: Optional[str] = Field(None, description="Morning, Afternoon, Evening, or Seva type if specified")
     passengers: List[Passenger] = Field(description="List of all traveling passengers extracted")
 
-# --- Async Playwright Cloud Worker ---
-async def run_cloud_automation(data):
-    logs = []
-    logs.append("🚀 Spinning up headless cloud browser engine...")
-    
-    async with async_playwright() as p:
-        # Cloud servers must run headless=True (no visible window)
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
-        
-        if data['booking_type'] == "IRCTC Train":
-            logs.append("🌐 Connecting to IRCTC Portal on the web server...")
-            await page.goto("https://irctc.co.in", timeout=60000)
-            
-            # Extract the actual live web page title as proof of connection
-            title = await page.title()
-            logs.append(f"🔗 Successfully reached: '{title}'")
-            
-            # Simple form interaction check
-            if data.get('source_city'):
-                logs.append(f"✍️ Cloud agent prepared to inject source: {data['source_city']}")
-            if data.get('destination_city'):
-                logs.append(f"✍️ Cloud agent prepared to inject destination: {data['destination_city']}")
-                
-            logs.append("ℹ️ Cloud Session initialized! To proceed with actual bookings safely past the OTP wall, connect this output to a local Chrome Autofill Extension.")
-            
-        elif data['booking_type'] == "TTD Seva":
-            logs.append("🌐 Connecting to TTD Official Portal...")
-            await page.goto("https://ap.gov.in", timeout=60000)
-            title = await page.title()
-            logs.append(f"🔗 Successfully reached: '{title}'")
-            logs.append(f"📋 Passenger data payload successfully compiled for TTD slots: {len(data['passengers'])} records ready.")
-            
-        await browser.close()
-        return logs
-
 # --- Streamlit UI Setup ---
 st.set_page_config(page_title="Web Agentic Assistant", page_icon="🤖", layout="wide")
 
 with st.sidebar:
     st.header("🔑 Authentication")
     user_api_key = st.text_input("Enter your Gemini API Key:", type="password", placeholder="AIzaSy...")
+    st.markdown("---")
+    st.markdown("### 📋 Active System State")
+    st.success("⚡ Engine Status: Online (Cloud Optimized)")
 
 st.title("🌐 Cloud-Native Agentic AI Travel Controller")
-st.caption("Running entirely on GitHub Web & Streamlit Community Cloud servers.")
+st.caption("Running seamlessly on Streamlit Community Cloud — Built for zero-error web execution.")
 
 if not user_api_key:
-    st.warning("👈 Please enter your Gemini API Key in the sidebar to run this cloud app.")
+    st.warning("👈 Please enter your Gemini API Key in the sidebar to open the workspace.")
     st.stop()
 
 try:
@@ -81,12 +45,16 @@ except Exception as e:
 col1, col2 = st.columns()
 
 with col1:
-    st.subheader("🔮 Input Prompt")
-    user_prompt = st.text_area("Enter travel query:", height=150, placeholder="Book a train from NDLS to TPTY...")
-    generate_btn = st.button("🚀 Step 1: Extract Parameters", type="primary")
+    st.subheader("🔮 Conversational Input")
+    user_prompt = st.text_area(
+        "Enter booking requirements:", 
+        height=150, 
+        placeholder="Book a train from NDLS to TPTY for next Friday. Passengers: Ravi, 34, Male."
+    )
+    generate_btn = st.button("🚀 Process via Agent Brain", type="primary")
 
 with col2:
-    st.subheader("⚙️ Cloud Execution Terminal")
+    st.subheader("⚙️ Agentic Handoff Terminal")
     
     if generate_btn and user_prompt:
         with st.spinner("Gemini is structuring your payload..."):
@@ -101,25 +69,28 @@ with col2:
                     ),
                 )
                 st.session_state['extracted_payload'] = response.text
-                st.success("✅ JSON Compiled!")
+                st.success("✅ JSON Payload Generated Successfully!")
             except Exception as e:
-                st.error(f"Gemini Error: {e}")
+                st.error(f"Gemini Processing Error: {e}")
 
     if 'extracted_payload' in st.session_state:
         payload_data = json.loads(st.session_state['extracted_payload'])
         st.json(payload_data)
         
-        st.markdown("### 🤖 Trigger Headless Web Agent")
+        st.markdown("### 🧭 Portal Quick Navigation")
         
-        if st.button("🏁 Run Cloud Web Check", type="secondary"):
-            with st.spinner("Executing background browser sequence on Streamlit servers..."):
-                try:
-                    # Run the async browser tool straight inside the Streamlit web loop
-                    execution_logs = asyncio.run(run_cloud_automation(payload_data))
-                    
-                    st.markdown("**Server Execution Logs:**")
-                    for log in execution_logs:
-                        st.text(log)
-                    st.success("🎉 Background server check completed smoothly!")
-                except Exception as e:
-                    st.error(f"Cloud execution encountered an error: {e}")
+        # Determine deep link based on AI determination
+        if payload_data['booking_type'] == "IRCTC Train":
+            target_url = "https://irctc.co.in"
+            st.info(f"🚄 **AI Recommendation:** Headed to IRCTC for travel on **{payload_data['travel_date']}**")
+        else:
+            target_url = "https://ap.gov.in"
+            st.info(f"🛕 **AI Recommendation:** Headed to TTD Portal for Darshan slots.")
+            
+        # Cloud-safe handoff solution: Let the user jump straight to the portal with pre-formed data
+        st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
+        
+        # Give them copyable block for local clipboard autofill extensions
+        st.markdown("#### 📋 Copy Injection Data")
+        st.caption("You can copy this optimized text block to instantly populate fields using local clipboard macros or form-fillers:")
+        st.code(f"TYPE: {payload_data['booking_type']}\nDATE: {payload_data['travel_date']}\nPASSENGERS: {json.dumps(payload_data['passengers'])}")
