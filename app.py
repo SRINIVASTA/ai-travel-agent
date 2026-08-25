@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-import datetime  # Added to track real-time server dates dynamically
+import datetime
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -43,7 +43,7 @@ except Exception as e:
     st.error(f"Initialization error: {e}")
     st.stop()
 
-# Explicitly pass '2' to create 2 columns safely in the latest Streamlit engine
+# Explicitly passing '2' to create 2 columns safely in the latest Streamlit core engine
 col1, col2 = st.columns(2)
 
 with col1:
@@ -106,6 +106,8 @@ with col2:
             
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
         
-        st.markdown("#### 📋 Copy Injection Data")
-        st.caption("Copy this payload block to feed your client-side form macros:")
-        st.code(f"TYPE: {payload_data['booking_type']}\nDATE: {payload_data['travel_date']}\nPASSENGERS: {json.dumps(payload_data['passengers'])}")
+        # Optimized copyable block for the web-only bookmarklet macro tool
+        st.markdown("#### 📋 Web-Agent Injection Payload")
+        st.caption("Click the copy button in the top right of the box below, then trigger your browser bookmarklet on the target booking page:")
+        injection_string = json.dumps(payload_data)
+        st.code(injection_string, language="json")
