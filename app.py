@@ -42,7 +42,7 @@ except Exception as e:
     st.error(f"Initialization error: {e}")
     st.stop()
 
-col1, col2 = st.columns()
+col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("🔮 Conversational Input")
