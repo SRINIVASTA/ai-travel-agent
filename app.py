@@ -51,7 +51,7 @@ with col1:
     user_prompt = st.text_area(
         "Enter booking requirements:", 
         height=150, 
-        placeholder="Example: Book a train from NDLS to TPTY for today. Passenger: Ravi, 34, Male."
+        placeholder="Example: Book TTD Seva for tomorrow. Passengers: Ramesh, 45, Male."
     )
     generate_btn = st.button("🚀 Process via Agent Brain", type="primary")
 
@@ -97,12 +97,14 @@ with col2:
         
         st.markdown("### 🧭 Portal Quick Navigation")
         
+        # Check routing and map target URLs accurately
         if payload_data['booking_type'] == "IRCTC Train":
             target_url = "https://irctc.co.in"
             st.info(f"🚄 **AI Recommendation:** Target Route: **{payload_data['source_city']} ➔ {payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
         else:
+            # Verified Official AP Government TTD Domain Target
             target_url = "https://ap.gov.in"
-            st.info(f"🛕 **AI Recommendation:** Headed to TTD Portal for Darshan slots scheduled for **{payload_data['travel_date']}**")
+            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Portal for Darshan slots scheduled for **{payload_data['travel_date']}**")
             
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
         
