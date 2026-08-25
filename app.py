@@ -22,8 +22,8 @@ class Passenger(BaseModel):
 
 class TravelPayload(BaseModel):
     booking_type: str = Field(description="Must be either 'IRCTC Train' or 'TTD Seva'")
-    source_city: Optional[str] = Field(None, description="Starting railway station code or city name")
-    destination_city: Optional[str] = Field(None, description="Destination station code or city name")
+    source_city: Optional[str] = Field(None, description="Starting railway station code/city name. Set to 'Not Applicable' for TTD Seva.")
+    destination_city: Optional[str] = Field(None, description="Destination station code or city name. Set to 'Tirumala' for TTD Seva.")
     travel_date: str = Field(description="Date of travel/seva in YYYY-MM-DD format")
     preferred_slot: Optional[str] = Field(None, description="Morning, Afternoon, Evening, or Seva type if specified")
     passengers: List[Passenger] = Field(description="Comprehensive list of all traveling passengers containing complete identity pairings, contact records, and address details.")
@@ -36,7 +36,7 @@ with st.sidebar:
     user_api_key = st.text_input("Enter your Gemini API Key:", type="password", placeholder="AIzaSy...")
     st.markdown("---")
     st.markdown("### 📋 Active System State")
-    st.success("⚡ Master Engine: Full Core KYC & Gender Inclusive Parser Online")
+    st.success("⚡ Master Engine: Full Core KYC & Location Anchor Online")
 
 st.title("🌐 Cloud-Native Agentic AI Travel Controller")
 st.caption("Running seamlessly on Streamlit Community Cloud — Fully supports Name, Age, Male/Female/Transgender options, Aadhaar/Passport tracking, Addresses, and Contacts.")
@@ -87,6 +87,13 @@ with col2:
                 Today's absolute baseline date is: {today_str}.
                 Extract booking details and parse the passenger matrix completely using these strict field validation rules:
                 
+                BOOKING TYPE & DESTINATION LOGIC:
+                - If the prompt mentions 'TTD', 'Seva', 'Darshan', or 'Tirupati temple', set 'booking_type' to 'TTD Seva'.
+                - For ALL 'TTD Seva' bookings, you MUST automatically set:
+                  * 'destination_city' = "Tirumala"
+                  * 'source_city' = "Not Applicable"
+                - For 'IRCTC Train' bookings, extract the actual cities provided by the user.
+                
                 GENDER MAPPING RULE:
                 - Identify passenger gender. Map it exactly to 'Male', 'Female', or 'Transgender' inside the JSON structure.
                 
@@ -133,8 +140,7 @@ with col2:
             target_url = "https://irctc.co.in"
             st.info(f"🚄 **AI Recommendation:** Target Route: **{payload_data['source_city']} ➔ {payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
         else:
-            # Updated to point directly to the accurate sub-routed TTD platform dashboard url
-            target_url = "https://ttdevasthanams.ap.gov.in/home/dashboard"
-            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Dashboard for slots scheduled for **{payload_data['travel_date']}**")
+            target_url = "https://ap.gov.in"
+            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Dashboard for slots in **{payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
             
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
