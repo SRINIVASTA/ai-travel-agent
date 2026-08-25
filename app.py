@@ -51,20 +51,32 @@ except Exception as e:
     st.error(f"Initialization error: {e}")
     st.stop()
 
-# Explicitly passing '2' to create 2 columns safely in the latest Streamlit core engine
+# Create 2 columns safely in the latest Streamlit core engine
 col1, col2 = st.columns(2)
 
+# --- COLUMN 1: INPUT AND EASY COPY PASTE ZONE ---
 with col1:
     st.subheader("🔮 Conversational Input")
     user_prompt = st.text_area(
         "Enter booking requirements:", 
         height=220, 
-        placeholder="Example: Book a train from NDLS to TPTY for tomorrow. Passenger 1: Kiran Sharma, 31, Transgender, Aadhaar: 111122223333, Mobile: 9898989898, living in New Delhi, Delhi, Pincode 110001."
+        placeholder="Example: Book TTD Seva for tomorrow. Passenger 1: Kiran Sharma, 31, Transgender, Aadhaar: 111122223333, Mobile: 9898989898, living in New Delhi, Delhi, Pincode 110001."
     )
     generate_btn = st.button("🚀 Process via Agent Brain", type="primary")
 
+    # The payload is positioned down here directly under the execution button for quick copy access
+    if 'extracted_payload' in st.session_state:
+        payload_data = json.loads(st.session_state['extracted_payload'])
+        
+        st.markdown("---")
+        st.markdown("#### 📋 Web-Agent Injection Payload")
+        st.caption("Click the copy button in the top-right of this box, then launch your Bookmarklet on the booking site:")
+        injection_string = json.dumps(payload_data)
+        st.code(injection_string, language="json")
+
+# --- COLUMN 2: VERIFICATION TERMINAL AND PORTAL LINKS ---
 with col2:
-    st.subheader("⚙️ Agentic Handoff Terminal")
+    st.subheader("⚙️ Agentic Verification Terminal")
     
     if generate_btn and user_prompt:
         with st.spinner("Gemini is assembling master registry data..."):
@@ -105,12 +117,14 @@ with col2:
                     ),
                 )
                 st.session_state['extracted_payload'] = response.text
-                st.success("✅ Comprehensive Passenger Records Successfully Structured!")
+                st.rerun() # Refresh to instantly move down to the copy window in Column 1
             except Exception as e:
                 st.error(f"Gemini Processing Error: {e}")
 
     if 'extracted_payload' in st.session_state:
         payload_data = json.loads(st.session_state['extracted_payload'])
+        
+        st.success("✅ Comprehensive Passenger Records Successfully Structured!")
         st.json(payload_data)
         
         st.markdown("### 🧭 Portal Quick Navigation")
@@ -119,12 +133,8 @@ with col2:
             target_url = "https://irctc.co.in"
             st.info(f"🚄 **AI Recommendation:** Target Route: **{payload_data['source_city']} ➔ {payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
         else:
-            target_url = "https://ap.gov.in"
-            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Portal for Darshan slots scheduled for **{payload_data['travel_date']}**")
+            # Updated to point directly to the accurate sub-routed TTD platform dashboard url
+            target_url = "https://ttdevasthanams.ap.gov.in/home/dashboard"
+            st.info(f"🛕 **AI Recommendation:** Headed to Official TTD Dashboard for slots scheduled for **{payload_data['travel_date']}**")
             
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
-        
-        st.markdown("#### 📋 Web-Agent Injection Payload")
-        st.caption("Click copy in the top-right of the field, then activate your Bookmarklet tool on the target page:")
-        injection_string = json.dumps(payload_data)
-        st.code(injection_string, language="json")
