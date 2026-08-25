@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import datetime  # Added to track real-time server dates dynamically
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -42,6 +43,7 @@ except Exception as e:
     st.error(f"Initialization error: {e}")
     st.stop()
 
+# Explicitly pass '2' to create 2 columns safely in the latest Streamlit engine
 col1, col2 = st.columns(2)
 
 with col1:
@@ -49,7 +51,7 @@ with col1:
     user_prompt = st.text_area(
         "Enter booking requirements:", 
         height=150, 
-        placeholder="Book a train from NDLS to TPTY for next Friday. Passengers: Ravi, 34, Male."
+        placeholder="Example: Book a train from NDLS to TPTY for today. Passenger: Ravi, 34, Male."
     )
     generate_btn = st.button("🚀 Process via Agent Brain", type="primary")
 
@@ -59,9 +61,25 @@ with col2:
     if generate_btn and user_prompt:
         with st.spinner("Gemini is structuring your payload..."):
             try:
+                # Capture today's calendar date straight from the cloud server environment
+                today_str = datetime.date.today().strftime("%Y-%m-%d")
+                
+                # Dynamic Instruction Anchor Framework for relative date context calculations
+                prompt_context = f"""
+                Today's absolute baseline date is: {today_str}.
+                Using this absolute anchor date, calculate and extract the correct calendar dates from the user prompt text.
+                
+                Rules for relative dates:
+                - If the user writes 'today', map the travel_date to exactly '{today_str}'
+                - If the user writes 'tomorrow', calculate the next day relative to '{today_str}'
+                - Calculate any relative days of the week (e.g., 'next Friday') starting forward from '{today_str}'
+                
+                User Prompt Payload: {user_prompt}
+                """
+                
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
-                    contents=f"Extract booking details: {user_prompt}",
+                    contents=prompt_context,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
                         response_schema=TravelPayload,
@@ -79,18 +97,15 @@ with col2:
         
         st.markdown("### 🧭 Portal Quick Navigation")
         
-        # Determine deep link based on AI determination
         if payload_data['booking_type'] == "IRCTC Train":
             target_url = "https://irctc.co.in"
-            st.info(f"🚄 **AI Recommendation:** Headed to IRCTC for travel on **{payload_data['travel_date']}**")
+            st.info(f"🚄 **AI Recommendation:** Target Route: **{payload_data['source_city']} ➔ {payload_data['destination_city']}** scheduled for **{payload_data['travel_date']}**")
         else:
             target_url = "https://ap.gov.in"
-            st.info(f"🛕 **AI Recommendation:** Headed to TTD Portal for Darshan slots.")
+            st.info(f"🛕 **AI Recommendation:** Headed to TTD Portal for Darshan slots scheduled for **{payload_data['travel_date']}**")
             
-        # Cloud-safe handoff solution: Let the user jump straight to the portal with pre-formed data
         st.link_button(f"🔗 Open Official {payload_data['booking_type']} Website", target_url, type="primary")
         
-        # Give them copyable block for local clipboard autofill extensions
         st.markdown("#### 📋 Copy Injection Data")
-        st.caption("You can copy this optimized text block to instantly populate fields using local clipboard macros or form-fillers:")
+        st.caption("Copy this payload block to feed your client-side form macros:")
         st.code(f"TYPE: {payload_data['booking_type']}\nDATE: {payload_data['travel_date']}\nPASSENGERS: {json.dumps(payload_data['passengers'])}")
