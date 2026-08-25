@@ -60,7 +60,7 @@ with col1:
     user_prompt = st.text_area(
         "Enter booking requirements:", 
         height=220, 
-        placeholder="Example: Book TTD Seva for tomorrow. Passenger 1: Kiran Sharma, 31, Transgender, Aadhaar: 111122223333, Mobile: 9898989898, living in New Delhi, Delhi, Pincode 110001."
+        placeholder="Example: Book TTD Seva for tomorrow. Passenger 1: Kiran Sharma, 31, Male, Aadhaar: 111122223333, Mobile: 9898989898, living in New Delhi, Delhi, Pincode 110001."
     )
     generate_btn = st.button("🚀 Process via Agent Brain", type="primary")
 
